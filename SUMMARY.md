@@ -36,8 +36,9 @@ system目录是框架的核心库、系统库和辅助函数库，其中核心�
 最后，引入了真正贯穿CI执行过程的启动器文件`CodeIgniter.php`。
 
 **tips：** 在CodeIgniter框架的其他系统文件的首部我们都会发现如下所示的代码段，这意味着`index.php`是框架的唯一入口文件，如果用户试图绕过入口文件`index.php`直接访问框架的其他文件时会以错误的方式跳出框架。
-`defined('BASEPATH') OR exit('No direct script access allowed');`
-
+```
+defined('BASEPATH') OR exit('No direct script access allowed');
+```
 到此为止，我们对CodeIgniter框架已经有了大体上的认识，之后我们会根据系统文件在框架中的作用分别进行分析。从代码的角度来看整个框架的文件调用过程如下图所示，代码的命名已经比较易懂，也可以对照代码调用和应用执行流程进一步理解代码完成的工作和在框架中的作用。
 
 ![](https://upload-images.jianshu.io/upload_images/8371576-8914246d5cc914f9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)

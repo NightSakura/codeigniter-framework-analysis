@@ -1,3 +1,4 @@
+# 地址解析类URI.php
 在CI框架中完成地址解析的是`URI.php`文件，地址解析是CI框架为了识别不同风格的URL进行的配置和预处理类，针对配置信息对URL进行预处理然后进行路由。
 ## 用户配置
 配置类中影响地址解析的配置项包括
@@ -12,10 +13,10 @@ CI默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/
 * REQUEST_URI 使用的是$_SERVER['REQUEST_URI’] ，返回的是用户访问地址，即被访问的文件之后的所有URI段 [包括path_info和query_string]。
 * QUERY_STRING  使用的是$_SERVER['QUERY_STRING’]，返回查询字符串即符号?之后的URL部分。
 * PATH_INFO     使用的是$_SERVER['PATH_INFO’]，返回真实脚本文件之后和查询字符串之前的URL部分。
-***有关$_SERVER的知识不清楚建议查阅PHP手册或相关博文***
 
 至此，我们已经清楚了钩子的开启和配置方法，下面我们开始分析CI_URI类的代码，由于方法比较多且具部分方法比较简单并且也只在该类的其他方法中使用，因此本文只就个人理解的重点方法进行介绍。
 ## 属性概览
+
 |属性名称|注释|
 |:----------:|:-----:|
 |public $keyval = array()|用缓存保存的URL字符列表|
@@ -25,6 +26,7 @@ CI默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/
 |protected $_permitted_uri_chars|保存允许的URL字符集合|
 
 ## 方法概览
+URI类的方法比较多，不过部分函数的功能类似，都是提供uri到键值对数组的转换，或者返回相对uri等方法，根据名称即可理解实现也比较简单，我们这里只分析相对复杂的方法。
 
 |方法名称|注释|
 |:----------:|:-----:|
@@ -53,7 +55,7 @@ CI默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/
 
 **构造函数__construct**
 
-```
+```php
 public function __construct()
 {
    $this->config =& load_class('Config', 'core');
@@ -101,7 +103,7 @@ public function __construct()
 
 **REQUEST_URI配置的解析_prase_request_uri**
 
-```
+```php
  protected function _parse_request_uri()
 {
    if ( ! isset($_SERVER['REQUEST_URI'], $_SERVER['SCRIPT_NAME']))
@@ -153,7 +155,7 @@ public function __construct()
 
 **QUERY_STRING配置的解析**
 
-```
+```php
 protected function _parse_query_string()
 {
    $uri = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : @getenv('QUERY_STRING');
@@ -170,14 +172,14 @@ protected function _parse_query_string()
       $uri = $uri[0];
    }
    parse_str($_SERVER['QUERY_STRING'], $_GET);
-       //去除相对路径"../"和多个斜线"///"，然后返回
+   //去除相对路径"../"和多个斜线"///"，然后返回
    return $this->_remove_relative_directory($uri);
 }
 ```
 
 **设置uri_string的值_set_uri_string($str)**
 
-```
+```php
 protected function _set_uri_string($str)
 {
    //将处理过的$str经过去除不可见字符和trim之后保存在属性$uri_string中
@@ -209,7 +211,7 @@ protected function _set_uri_string($str)
             $this->segments[] = $val;
          }
       }
-           //由于这一步，实际有用的数据从segments的下标1开始
+      //由于这一步，实际有用的数据从segments的下标1开始
       unset($this->segments[0]);
    }
 }

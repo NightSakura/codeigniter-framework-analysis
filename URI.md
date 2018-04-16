@@ -1,11 +1,14 @@
 # 地址解析类URI.php
-在CI框架中完成地址解析的是`URI.php`文件，地址解析是CI框架为了识别不同风格的URL进行的配置和预处理类，针对配置信息对URL进行预处理然后进行路由。
+在CodeIgniter框架中完成地址解析的是`URI.php`文件，地址解析是CI框架为了识别不同风格的URL进行的配置和预处理类，针对配置信息对URL进行预处理然后进行路由。
 ## 用户配置
 配置类中影响地址解析的配置项包括
 `$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-‘`，取值用正则表达式表示URL字符串中允许出现的字符，不允许出现的字符会被过滤；
+
 `$config['url_surfix']`表示URL后缀，定义次配置，CI框架会在展示给用户的URL上添加后缀，当然在地址解析时就需要去掉后缀；
+
 `$config['enable_query_strings’]`，表示是否允许查询字符串形式的URL，其取值为True或False。
-CI默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/where,但是也允许用户选择查询query_string形式的URL，比如example.com?who=me&what=something&where=here开启条件是将`$config['enable_query_strings’]`的值设置为True，此时URI类将不做任何处理，ROUTER类也只会根据查询字符串来匹配目录、控制器、方法。
+## 解析方式
+CodeIgniter默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/where,但是也允许用户选择查询query_string形式的URL，比如example.com?who=me&what=something&where=here开启条件是将`$config['enable_query_strings’]`的值设置为True，此时URI类将不做任何处理，ROUTER类也只会根据查询字符串来匹配目录、控制器、方法。
 
 下面分析`$config['enable_query_strings’]`取值为False的情况，此时`$config['uri_protocol’]`配置型也会影响对URL的解析方法。
 `$config['uri_protocol’]`，其取值范为REQUEST_URI，QUERT_STRING，PATH_INFO
@@ -14,7 +17,7 @@ CI默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/
 * QUERY_STRING  使用的是$_SERVER['QUERY_STRING’]，返回查询字符串即符号?之后的URL部分。
 * PATH_INFO     使用的是$_SERVER['PATH_INFO’]，返回真实脚本文件之后和查询字符串之前的URL部分。
 
-至此，我们已经清楚了钩子的开启和配置方法，下面我们开始分析CI_URI类的代码，由于方法比较多且具部分方法比较简单并且也只在该类的其他方法中使用，因此本文只就个人理解的重点方法进行介绍。
+至此，我们已经清楚了钩子的开启和配置方法，下面我们开始分析CI_URI类的代码。
 ## 属性概览
 
 |属性名称|注释|

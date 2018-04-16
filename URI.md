@@ -5,7 +5,7 @@
 
 `$config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-‘`，取值用正则表达式表示URL字符串中允许出现的字符，不允许出现的字符会被过滤；
 
-`$config['url_surfix']`表示URL后缀，定义次配置，CI框架会在展示给用户的URL上添加后缀，当然在地址解析时就需要去掉后缀；
+`$config['url_surfix']`用于优化URL显示的后缀，比如.html。定义此配置，CodeIgniter框架会在展示给用户的URL上添加后缀，当然在地址解析时就需要去掉后缀；
 
 `$config['enable_query_strings']`，表示是否允许查询字符串形式的URL，其取值为True或False。
 ## 解析方式
@@ -24,6 +24,7 @@ CodeIgniter默认用户使用搜索引擎友好的URL格式，比如example.com/
 至此，我们已经清楚了钩子的开启和配置方法，下面我们开始分析CI_URI类的代码。
 ## 属性概览
 
+URI的属性如下表所示，在构造函数中就完成了地址解析，因此加载类之后在属性$segments中就保存着URL的类和方法对应的数组，解析的URI结果也保存在$uri_string中。
 |属性名称|注释|
 |:----------:|:-----:|
 |public $keyval = array()|用缓存保存的URL字符列表|

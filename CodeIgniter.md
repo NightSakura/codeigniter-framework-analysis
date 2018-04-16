@@ -9,7 +9,7 @@ CodeIgniter的设计为了兼容之前的版本和旧PHP的语法，面向对象
 `const CI_VERSION = '3.1.8';`
 ### 加载系统常量和公共函数
 在框架流程的开始先加载了系统常量和公共函数，系统常量包括文件读写、退出状态位等的设置，当然用户也可以扩充此文件；公共函数是后续流程中会使用到的函数在这里就进行了加载，比如使用非常多的load()函数。
-```
+```php
 if (file_exists(APPPATH.'config/'.ENVIRONMENT.'/constants.php')){		 
     require_once(APPPATH.'config/'.ENVIRONMENT.'/constants.php');
 }
@@ -20,7 +20,7 @@ require_once(BASEPATH.'core/Common.php');
 ```
 ### 低于PHP5.4版本的安全处理
 这部分内容是为了兼容PHP5.4之前的版本，PHP 5.4废除了register_globals，magic_quotes以及安全模式，之后的版本就不需要考虑这些问题。
-```
+```php
 if ( ! is_php('5.4'))
 {
 	ini_set('magic_quotes_runtime', 0);
@@ -66,14 +66,14 @@ if ( ! is_php('5.4'))
 ```
 ### 设置系统错误处理Handler
 设置错误处理，异常处理，shutdown的梳理函数，这几个函数其实是定义在`Common.php`中的。
-```
+```php
 set_error_handler('_error_handler');
 set_exception_handler('_exception_handler');
 register_shutdown_function('_shutdown_handler');
 ```
 ### 获取Composer支持
 CodeIgniter的Composer支持可以通过用户配置来完成，但是CodeIgniter本身使用的是自己定义的类加载方法，还是为了兼容老版本。个人认为历史包袱太重，适应现在PHP的标准应该引入Composer支持，通过PSR4的标准完成类的加载以利于框架之间的互相调用，不过这些都是题外话。
-```
+```php
 if ($composer_autoload = config_item('composer_autoload'))
 {
    if ($composer_autoload === TRUE)
@@ -116,7 +116,7 @@ if ($composer_autoload = config_item('composer_autoload'))
 
 ### 缓存调用
 注意框架的组件加载过程，在判断缓存是否存在时很多组件还没有加载，CodeIgniter也是以此为标准来判断是否是缓存读取的。
-```
+```php
 if ($EXT->call_hook('cache_override') === FALSE 
     && $OUT->_display_cache($CFG, $URI) === TRUE){
 	exit;
@@ -125,7 +125,7 @@ if ($EXT->call_hook('cache_override') === FALSE
 ### 404错误处理
 代码运行到这一部分URI和Router组件都已经加载完毕，并且路由解析的结果保存在$RTR的$class和$method属性中，为了提高框架的健壮性，需要进行404错误的判断。
 并且CodeIgniter实现了“_remap”方法，意思是不论路由结果如何，如果路由到的类中有名为“_remap”的方法，都将执行该方法。
-```
+```php
 $e404 = FALSE;
 $class = ucfirst($RTR->class);
 $method = $RTR->method;
@@ -193,7 +193,7 @@ if ($e404){
 ```
 ### 调用请求方法 输出结果
 调用请求的方法和输出是通过如下代码实现的，其中display_override钩子可以替换默认的_display()方法
-```
+```php
 $CI = new $class();  
 call_user_func_array(array(&$CI, $method), $params);  
 

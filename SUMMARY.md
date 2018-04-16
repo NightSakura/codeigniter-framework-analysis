@@ -7,7 +7,9 @@ CodeIgniter 是一套给 PHP 网站开发者使用的应用程序开发框架和
 ![](https://upload-images.jianshu.io/upload_images/8371576-e7f6c8b9f5aafa8c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/300)
 
 CodeIgniter框架的主要文件目录是application和system，user_guide目录。
+
 application目录顾名思义是应用的主目录，文件夹中包含应用相关配置或扩展类的模板，开发者使用框架进行应用开发时主要在本目录编写相应的配置以及逻辑处理方法。
+
 system目录是框架的核心库、系统库和辅助函数库，其中核心库是框架运行流程的支撑代码，包括公共函数，基础配置项，路由解析，输入输出，安全处理等。系统库诸如数据库辅助类，session和cookie辅助类等。辅助函数包括邮箱验证、日期类等常用的应用组件。这些文件开发者最好不要擅自修改，它是整个框架的根基，也是我们进行源码分析需要最先关注的地方。
 
 ## 应用流程
@@ -25,15 +27,19 @@ system目录是框架的核心库、系统库和辅助函数库，其中核心�
 
 ## 代码执行过程
 
-和很多MVC框架类似，CI框架的入口脚本也命名为`index.php`。
-`index.php`完成的工作包括设置框架的执行环境，具体为`development`，`testing`，`production`3种，并根据执行环境设置PHP的报警级别。
-然后分别设置系统，应用和视图文件夹的名称，并且定位这些文件夹在服务器的绝对路径，然后定义`BASEPATH`，`VIEWPATH`和`APPPATH`3个常量。
-最后，引入了真正贯穿CI执行过程的“启动器”文件`CodeIgniter.php`。
-Tips：在CI框架的其他系统文件的首部我们都会发现如下所示的代码段，这就表示`index.php`是框架的唯一入口文件，如果用户试图绕过入口文件`index.php`通过其他方式访问其他文件会以错误的方式跳出框架。
+和很多MVC框架类似，CodeIgniter框架的入口脚本是`index.php`。
+
+`index.php`完成的工作包括设置框架的执行环境，具体为`development`，`testing`，`production`3种，并根据执行环境设置对应的PHP的报警级别。
+
+然后分别设置系统，应用和视图的实际文件夹的名称，根据文件夹的名称定位这些文件夹在服务器的绝对路径，用取到的值来定义`BASEPATH`，`VIEWPATH`和`APPPATH`3个常量，完成系统路径、视图路径和应用路径的初始化工作。
+
+最后，引入了真正贯穿CI执行过程的启动器文件`CodeIgniter.php`。
+
+**tips：** 在CodeIgniter框架的其他系统文件的首部我们都会发现如下所示的代码段，这意味着`index.php`是框架的唯一入口文件，如果用户试图绕过入口文件`index.php`直接访问框架的其他文件时会以错误的方式跳出框架。
 `defined('BASEPATH') OR exit('No direct script access allowed');`
 
-从源码的角度看整个框架的文件调用过程如下图所示。
+到此为止，我们对CodeIgniter框架已经有了大体上的认识，之后我们会根据系统文件在框架中的作用分别进行分析。从代码的角度来看整个框架的文件调用过程如下图所示，代码的命名已经比较易懂，也可以对照代码调用和应用执行流程进一步理解代码完成的工作和在框架中的作用。
 
 ![](https://upload-images.jianshu.io/upload_images/8371576-8914246d5cc914f9.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-通过梳理代码的执行和调用过程，我们至少基本了解了CI框架代码的设计，那么我们接下来就从启动器`CodeIgniter.php`开始入手分析框架运行过程中核心库的源代码。
+通过梳理CodeIgniter框架的代码结构，应用的执行过程和代码的执行与调用过程，我们基本了解了CodeIgniter框架代码的设计，那么我们接下来就从启动器`CodeIgniter.php`开始入手分析框架运行过程中核心库的代码。

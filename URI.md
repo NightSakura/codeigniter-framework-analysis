@@ -7,19 +7,19 @@
 
 `$config['url_surfix']`表示URL后缀，定义次配置，CI框架会在展示给用户的URL上添加后缀，当然在地址解析时就需要去掉后缀；
 
-`$config['enable_query_strings’]`，表示是否允许查询字符串形式的URL，其取值为True或False。
+`$config['enable_query_strings']`，表示是否允许查询字符串形式的URL，其取值为True或False。
 ## 解析方式
-CodeIgniter默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/where，但是也允许用户选择查询query_string形式的URL，比如example.com?who=me&what=something&where=here。用户的配置会影响框架解析URI的方式，`$config['enable_query_strings’]`是其中重要的配置项
+CodeIgniter默认用户使用搜索引擎友好的URL格式，比如example.com/who/what/where，但是也允许用户选择查询query_string形式的URL，比如example.com?who=me&what=something&where=here。用户的配置会影响框架解析URI的方式，`$config['enable_query_strings']`是其中重要的配置项。
 
-当`$config['enable_query_strings’]`的值设置为True时，框架默认以查询字符串的形式去匹配盖茨请求的控制器，方法和目录。URI类将不做任何处理，ROUTER类也只会根据查询字符串来匹配对应的目录、控制器和方法。
+当`$config['enable_query_strings']`的值设置为True时，框架默认以查询字符串的形式去匹配盖茨请求的控制器，方法和目录。URI类将不做任何处理，ROUTER类也只会根据查询字符串来匹配对应的目录、控制器和方法。
 
-下面分析`$config['enable_query_strings’]`取值为False的情况，此时`$config['uri_protocol’]`配置生效，并且会影响框架对URI的解析方式。
+下面分析`$config['enable_query_strings']`取值为False的情况，此时`$config['uri_protocol']`配置生效，并且会影响框架对URI的解析方式。
 
-`$config['uri_protocol’]`的取值范为REQUEST_URI，QUERT_STRING，PATH_INFO
+`$config['uri_protocol']`的取值范为REQUEST_URI，QUERT_STRING，PATH_INFO。
 这项配置是为了应对用户的不同的URL风格，对服务器的影响是选择**取回URL字符串的方式**不同，具体信息如下所示：
-* REQUEST_URI 使用的是$_SERVER['REQUEST_URI’] ，返回的是用户访问地址，即被访问的文件之后的所有URI段 [包括path_info和query_string]。
-* QUERY_STRING  使用的是$_SERVER['QUERY_STRING’]，返回查询字符串即符号?之后的URL部分。
-* PATH_INFO     使用的是$_SERVER['PATH_INFO’]，返回真实脚本文件之后和查询字符串之前的URL部分。
+* REQUEST_URI 使用的是$_SERVER['REQUEST_URI'] ，返回的是用户访问地址，即被访问的文件之后的所有URI段 [包括path_info和query_string]。
+* QUERY_STRING  使用的是$_SERVER['QUERY_STRING']，返回查询字符串即符号?之后的URL部分。
+* PATH_INFO     使用的是$_SERVER['PATH_INFO']，返回真实脚本文件之后和查询字符串之前的URL部分。
 
 至此，我们已经清楚了钩子的开启和配置方法，下面我们开始分析CI_URI类的代码。
 ## 属性概览

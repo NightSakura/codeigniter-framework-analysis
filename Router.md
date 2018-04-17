@@ -16,11 +16,14 @@ $config['directory_trigger'] = 'd';
 CodeIgniter中的自定义路由规则比较强大，能够支持通配符的形式、支持正则表达式的形式，支持设置自定义的回调函数来处理逆向引用，支持使用HTTP动词来进行更精准的路由匹配，具体的定义格式等内容可以参见CI用户手册的[URI路由](http://codeigniter.org.cn/user_guide/general/routing.html)章节，有助于理解Router类是如何分别支持以上自定义规则的。
 
 另外还需要指出的是，CodeIgniter中保留了以下几条默认路由规则。
-`$route['default_controller'] = 'welcome';`
-`$route['404_override'] = '';`
-`$route['translate_uri_dashes'] = FALSE;`
+```php
+$route['default_controller'] = 'welcome';
+$route['404_override'] = '';
+$route['translate_uri_dashes'] = FALSE;
+```
 
 ## 属性概览
+Router类的属性并不多，根据名称也可以基本了解其对应的含义。比较重要的是路由解析之后的结果保存在属性$class和$method中，$directory保存着请求对应的类文件的目录。
 
 |属性名称|注释|
 |:----------:|:-----:|
@@ -34,6 +37,7 @@ CodeIgniter中的自定义路由规则比较强大，能够支持通配符的形
 |public $enable_query_strings = FALSE;|是否开启query_string的标志位|
 
 ## 方法概览
+Router类的方法也不多，除了用于解析URI的方法之外还有几组get和set方法，这些方法在框架中适用于主文件中存在覆盖的情况，当然用户也可以调用来覆写某个请求的实际控制类和方法。下面整理进行路由解析的几个函数之间的调用关系。
 
 |方法名称|注释|
 |:----------:|:-----:|
@@ -53,7 +57,7 @@ CodeIgniter中的自定义路由规则比较强大，能够支持通配符的形
 **构造函数__construct()**
 
 构造函数调用了_set_routing()函数完成了路由解析的过程，并且将结果保存在类的属性$class和$method中，同时考虑到主文件中覆盖解析结果的情况
-```
+```php
 public function __construct($routing = NULL)
 {
    $this->config =& load_class('Config', 'core');
@@ -81,7 +85,7 @@ public function __construct($routing = NULL)
 **进行路由解析_set_routing()**
 
 _set_routing()是进行路由解析的核心方法，从加载用户自定义的路由规则开始，到针对query_string和request_uri两种设置进行路由解析并保存最终的结果，query_string设置下直接根据查询字符串解析进行，解析失败会调用设置默认控制器函数_set_default_controller()，request_uri设置下的解析则调用函数_parse_routes()进行处理。
-```
+```php
 protected function _set_routing()
 {
    //加载routes.php文件
@@ -161,7 +165,7 @@ protected function _set_routing()
 **REQUEST_URI模式下的URI解析_parse_routes()**
 
 _parse_routes()是request_uri设置下的路由解析方法，分别针对用户自定义的路由规则进行处理，优先处理HTTP动词，然后将通配符替换为正则进行匹配，处理回调函数和逆向引用的情况，如果都没有匹配成功，则根据默认的路由规则调用_set_request()函数进行处理。
-```
+```php
 protected function _parse_routes()
 {
    //将URI对象的segments数组转化成uri字符
@@ -220,7 +224,7 @@ protected function _parse_routes()
 **解析uri中文件目录_validate_request($segments)**
 
 处理URI类处理之后的$segments，按顺序匹配直到找到控制器文件为止，并把之前的数组元素设置在目录中。
-```
+```php
 protected function _validate_request($segments)
 {
    $c = count($segments);
@@ -253,7 +257,7 @@ protected function _validate_request($segments)
 **默认规则解析控制器和方法_set_request($segments = array())**
 
 _set_request()函数处理的是_validate_request()处理之后剩余的$segments，如果为空表示没有对应的控制器，设置默认控制器，否则表示找到了控制器文件，保存结果即可。
-```
+```php
 protected function _set_request($segments = array())
 {
    //验证uri并将其中的dir元素移除并拼接到类的$directory属性中
@@ -295,7 +299,7 @@ protected function _set_request($segments = array())
 **设置默认的控制器和方法_set_default_controller()**
 
 顾名思义，也很容易理解，设置默认的控制器和方法。
-```
+```php
 protected function _set_default_controller()
 {
     //default_controller是保留路由，不设置这里会报错

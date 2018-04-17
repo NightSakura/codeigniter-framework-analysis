@@ -1,17 +1,21 @@
 # 路由类Router.php
-路由是MVC框架的核心内容，路由的作用是寻找和用户的请求URL相匹配的类和方法[处理器]，也可以说是请求分发器，将用户的请求分发到对应的文件进行处理。CI框架在路由上比较灵活，支持路由不同风格的URI，当然针对不同风格的URI需要进行不同的预处理方法，这一步主要在[地址解析](https://www.jianshu.com/p/ed60ea3b8b6c)中完成，总体而言CI的路由解析是需要URI类和Router类配合完成的，针对不通的URL风格进行不通的地址解析方法，当然对应的路由规则也不尽相同，CI也支持自定义路由规则。
+路由是MVC框架的核心内容，路由的作用是寻找和用户的请求URL相匹配的类和方法[处理器]，也可以说是请求分发器，将用户的请求分发到对应的文件进行处理。
+进行路由解析之前需要对用户的请求URI进行预处理，这部分内容主要是在[地址解析](URI.md)中介绍。我们应该也了解CodeIgniter对不同风格的URI的支持，和地址解析类似针对不同风格的URI，路由规则也不同。总体而言，CodeIgniter的路由工作是URI类和Router类配合完成的，针对不同的配置进行不同URL风格进行预处理并采用不同的路由规则进行解析。
 
 ## 用户配置
-CI的路由和地址解析类时相互配合完成工作的，由于CI支持多种风格的URI解析，对不通模式下的路由规则也是略有不同的，同样依赖于`config.php`中的配置。
-* 当`$config['enable_query_string']=True`时,路由解析是工作在QUERY_STRING的模式下，这种情况下**用户定义的路由规则是不生效的，这时候路由解析都是基于查询字符串完成的**。
-`$config['controller_trigger'] = 'c';`
-`$config['function_trigger'] = 'm';`
-`$config['directory_trigger'] = 'd';`
+CodeIgniter的路由和地址解析类时相互配合完成工作的，在不同模式下的Router类的路由规则也略有不同的，同样依赖于`config.php`中的配置。
+* 当`$config['enable_query_string']=True`时,路由解析是工作在QUERY_STRING的模式下，路由解析类直接从查询字符串中寻找类和方法。需要注意的是这种情况下**用户定义的路由规则是不生效的，这时候路由解析都是基于查询字符串完成的**。
+```php
+$config['controller_trigger'] = 'c';
+$config['function_trigger'] = 'm';
+$config['directory_trigger'] = 'd';
+```
 以上3个配置项也是定义在`config.php`中的，他们分别的定义了URI中查询字符串中定义的控制器，方法和文件目录的缩写。
-* 当`$config['enable_query_string']=False`时，路由解析工作在REQUEST_URI的模式下，这时候就需要进行路由规则匹配了。
-用户自定义的路由规则在 application/config/routes.php 文件中，这个文件定义了一个$route数组。
-CI中的自定义路由规则比较强大，能够支持通配符的形式、支持正则表达式的形式，支持设置自定义的回调函数来处理逆向引用，支持使用HTTP动词来进行更精准的路由匹配，具体的定义格式等内容可以参见CI用户手册的[URI路由](http://codeigniter.org.cn/user_guide/general/routing.html)章节。CI是如何对以上路由规则进行适配的呢？我们接下来就慢慢讲解。
-在次之前需要指出的是，CI中保留了以下几条默认路由规则。
+* 当`$config['enable_query_string']=False`时，路由解析工作在REQUEST_URI的模式下，这时候需要进行路由规则的匹配，路由的优先级为用户定义路由规则->默认路由规则->默认控制器/方法->404错误。用户自定义的路由规则在 application/config/routes.php 文件中，这个文件定义了一个$route数组。
+
+CodeIgniter中的自定义路由规则比较强大，能够支持通配符的形式、支持正则表达式的形式，支持设置自定义的回调函数来处理逆向引用，支持使用HTTP动词来进行更精准的路由匹配，具体的定义格式等内容可以参见CI用户手册的[URI路由](http://codeigniter.org.cn/user_guide/general/routing.html)章节，有助于理解Router类是如何分别支持以上自定义规则的。
+
+另外还需要指出的是，CodeIgniter中保留了以下几条默认路由规则。
 `$route['default_controller'] = 'welcome';`
 `$route['404_override'] = '';`
 `$route['translate_uri_dashes'] = FALSE;`
@@ -29,7 +33,7 @@ CI中的自定义路由规则比较强大，能够支持通配符的形式、支
 |public $translate_uri_dashes = FALSE;|确定URI中的“-”是否需要转化成“_”的标志位|
 |public $enable_query_strings = FALSE;|是否开启query_string的标志位|
 
-## 函数概览
+## 方法概览
 
 |方法名称|注释|
 |:----------:|:-----:|

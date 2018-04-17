@@ -1,3 +1,4 @@
+# 输出类Output.php
 输出类负责将用户请求转化为浏览器输出的，理解输出类需要对HTTP协议有一定的理解，知道服务器如何将请求转化的文件送到浏览器，知道Http的header和content中与服务器输出有关的标签的含义，才能更好的理解CI中输出类CI_Output需要完成的工作。
 这里就缓存的例子进行说明，服务器缓存在CI中是如何实现的呢？首先缓存的形式是什么？简单点的实现用文件缓存，那么就需要考虑写缓存的互斥问题。如何判断缓存是否命中？用基础的方法给缓存标记一个key——uri的md5，比较这个key是否相等即可。那么这里又要考虑是否对原始的uri进行md5操作，需要对uri进行标准化处理吗？需要考虑查询字符串吗？后续的内容还包括如何判断缓存过期，缓存输出的时候如何处理HTTP响应头中与缓存控制相关的标签，如果缓存未命中应该如何通知其他组件进行后续流程等等。
 不过值得庆幸的是以上内容在CI框架中都已经实现了，下面我们开始分析CI_Output类是如何做到这些的。
@@ -38,7 +39,7 @@
 |set_cache_header($last_modified, $expiration)|设置缓存相关的header|
 
 **构造函数__construct()**
-```
+```php
 public function __construct()
 {
     //获取php的ini对压缩输出的配置
@@ -60,7 +61,7 @@ public function __construct()
 }
 ```
 **把输出显示在浏览器_display($output = '')**
-```
+```php
 public function _display($output = '')
 {
    // Note:我们实用load_class()而不直接用$CI =& get_instance()
@@ -167,7 +168,7 @@ public function _display($output = '')
 }
 ```
 **写入缓存文件_write_cache($output)**
-```
+```php
 public function _write_cache($output)
 {
    $CI =& get_instance();
@@ -262,7 +263,7 @@ public function _write_cache($output)
 }
 ```
 **从缓存读取内容显示在浏览器_display_cache(&$CFG, &$URI)**
-```
+```php
 public function _display_cache(&$CFG, &$URI)
 {
    $cache_path = ($CFG->item('cache_path') === '') ? APPPATH.'cache/' : $CFG->item('cache_path');
@@ -331,7 +332,7 @@ public function _display_cache(&$CFG, &$URI)
 }
 ```
 **删除缓存文件delete_cache($uri = '')**
-```
+```php
 public function delete_cache($uri = '')
 {
     //获取缓存保存路径

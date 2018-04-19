@@ -129,7 +129,7 @@ protected function _clean_input_keys($str, $fatal = TRUE)
 }
 ```
 **从表单取值的函数_fetch_from_array()**
-```
+```php
 protected function _fetch_from_array(&$array, $index = NULL, $xss_clean = NULL)
 {
    is_bool($xss_clean) OR $xss_clean = $this->_enable_xss;

@@ -1,5 +1,17 @@
 # 输入类input.php
+输入类主要有以下两个用途。
+* 为了安全性，对输入数据进行预处理，预处理逻辑是根据用户的配置选择对应的处理方法。
+* 提供了一些辅助方法来获取输入数据并处理，CodeIgniter 提供了几个辅助方法来从 POST、GET、COOKIE 和 SERVER 数组中获取数据。 使用这些方法来获取数据而不是直接访问数组`$_POST['key']`的最大好 处是这些方法会检查获取的数据是否存在，如果不存在则返回 NULL 。这使用起来将很方便， 你不再需要去检查数据是否存在 ，此外也能提高程序的可读性。
+## 用户配置
+和输入类相关的用户配置包括以下几项。
 
+$config['allow_get_array']表示是否允许用户使用`$_GET`全局变量，如果设置为不允许，会在输入类构造函数处理中将`$_GET`清空。
+
+$config['global_xss_filtering']表示是否开启XSS全局防御的标志位，如果设置为允许，则会对用户输入和Cookie的内容中进行XSS过滤。
+
+$config['csrf_protection']表示是否开启CSRF防御，如果设置为允许，则会在对表单数据进行处理时进行CSRF方法的检查。
+
+$config['standardize_newlines']表示是否标准化换行符，如果设置为允许，则会在对表单数据进行处理时用PHP_EOL代替数据中的换行符。
 
 ## 属性概览
 
@@ -35,7 +47,7 @@ public function __construct()
    log_message('info', 'Input Class Initialized');
 }
 ```
-**_sanitize_globals()**
+**表单处理函数_sanitize_globals()**
 ```php
 protected function _sanitize_globals()
 {

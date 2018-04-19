@@ -99,3 +99,91 @@ protected function _sanitize_globals()
    log_message('debug', 'Global POST, GET and COOKIE data sanitized');
 }
 ```
+
+**表单数据key值处理_clean_input_keys()**
+```php
+protected function _clean_input_keys($str, $fatal = TRUE)
+{
+    //如果$str中有不允许的字符串则根据$fatal取值返回false活着直接报503，exit
+   if ( ! preg_match('/^[a-z0-9:_\/|-]+$/i', $str))
+   {
+      if ($fatal === TRUE)
+      {
+         return FALSE;
+      }
+      else
+      {
+         set_status_header(503);
+         echo 'Disallowed Key Characters.';
+         exit(7); // EXIT_USER_INPUT
+      }
+   }
+
+   //如果需要utf8支持则调用UTF8的clean_string()方法处理并返回$str
+   if (UTF8_ENABLED === TRUE)
+   {
+      return $this->uni->clean_string($str);
+   }
+  
+   return $str;
+}
+```
+**从表单取值的函数_fetch_from_array()**
+```
+protected function _fetch_from_array(&$array, $index = NULL, $xss_clean = NULL)
+{
+   is_bool($xss_clean) OR $xss_clean = $this->_enable_xss;
+
+   //如果$index是空，那么获取并输出$array中所有的键值对
+   isset($index) OR $index = array_keys($array);
+
+   //$index是数组是循环自身调用输出，允许一次获取多个值
+   if (is_array($index))
+   {
+      $output = array();
+      foreach ($index as $key)
+      {
+         $output[$key] = $this->_fetch_from_array($array, $key, $xss_clean);
+      }
+
+      return $output;
+   }
+
+   //如果能直接取到直接输出，能正则匹配
+   if (isset($array[$index]))
+   {
+      $value = $array[$index];
+   }
+   elseif (($count = preg_match_all('/(?:^[^\[]+)|\[[^]]*\]/', $index, $matches)) > 1) //如果有数组注解符号
+   {
+      //从数组中匹配$key作为最终取到的值
+      $value = $array;
+      for ($i = 0; $i < $count; $i++)
+      {
+         $key = trim($matches[0][$i], '[]');
+         if ($key === '') // Empty notation will return the value as array
+         {
+            break;
+         }
+
+         if (isset($value[$key]))
+         {
+            $value = $value[$key];
+         }
+         else
+         {
+            return NULL;
+         }
+      }
+   }
+   else
+   {
+      return NULL;
+   }
+
+    //如果开启了xss检查，输出xss_clean方法处理后的$value
+   return ($xss_clean === TRUE)
+      ? $this->security->xss_clean($value)
+      : $value;
+}
+```

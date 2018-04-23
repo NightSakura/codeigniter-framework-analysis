@@ -6,7 +6,7 @@
 
 ## 方法概览
 
-****
+**构造函数__construct()**
 ```php
 public function __construct()
 {
@@ -37,8 +37,198 @@ public function __construct()
    log_message('info', 'Security Class Initialized');
 }
 ```
+**XSS清理xss_clean()**
+```php
+public function xss_clean($str, $is_image = FALSE)
+{
+   //数组类型循环调用本方法
+   if (is_array($str))
+   {
+      foreach ($str as $key => &$value)
+      {
+         $str[$key] = $this->xss_clean($value);
+      }
 
-****
+      return $str;
+   }
+
+   //去除控制字符
+   $str = remove_invisible_characters($str);
+
+   /* 匹配到%就进行URL Decode
+    * 防止类似<a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>的提交
+    * Note:使用rawurldecode()函数，不会移除加号
+    */
+   if (stripos($str, '%') !== false)
+   {
+      do
+      {
+         $oldstr = $str;
+         $str = rawurldecode($str);
+         $str = preg_replace_callback('#%(?:\s*[0-9a-f]){2,}#i', array($this, '_urldecodespaces'), $str);
+      }
+      while ($oldstr !== $str);
+      unset($oldstr);
+   }
+
+
+   //将character转换城ASCII
+   $str = preg_replace_callback("/[^a-z0-9>]+[a-z0-9]+=([\'\"]).*?\\1/si", array($this, '_convert_attribute'), $str);
+   $str = preg_replace_callback('/<\w+.*/si', array($this, '_decode_entity'), $str);
+
+   //再次去除控制字符!
+   $str = remove_invisible_characters($str);
+
+   /*
+    * 转换tabs为空字符' '
+    * 应对ja vascript这种情况，之后处理空字符
+    */
+   $str = str_replace("\t", ' ', $str);
+
+   $converted_string = $str;
+
+   //删除不允许的字符
+   $str = $this->_do_never_allowed($str);
+
+
+       //Makes PHP tags safe
+   if ($is_image === TRUE)
+   {
+      //替换图片中的PHP开始标签-只处理长标签
+      $str = preg_replace('/<\?(php)/i', '&lt;?\\1', $str);
+   }
+   else
+   {
+      $str = str_replace(array('<?', '?'.'>'), array('&lt;?', '?&gt;'), $str);
+   }
+
+   /* 处理被拆分的关键词
+    * This corrects words like:  j a v a s c r i p t
+    * 处理之后让这些词返回正确的状态
+    */
+   $words = array(
+      'javascript', 'expression', 'vbscript', 'jscript', 'wscript',
+      'vbs', 'script', 'base64', 'applet', 'alert', 'document',
+      'write', 'cookie', 'window', 'confirm', 'prompt', 'eval'
+   );
+
+   foreach ($words as $word)
+   {
+      $word = implode('\s*', str_split($word)).'\s*';
+
+      // 只把空格后边不是完整单词的情况进行合并
+      // 这样避免了像"dealer to"被合并城"dealerto"的情况
+      $str = preg_replace_callback('#('.substr($word, 0, -3).')(\W)#is', array($this, '_compact_exploded_words'), $str);
+   }
+
+   /*
+    * 删除在link或者img标签中不允许的Javascript
+    * We used to do some version comparisons and use of stripos(),
+    * but it is dog slow compared to these simplified non-capturing
+    * preg_match(), especially if the pattern exists in the string
+    *
+    * Note: It was reported that not only space characters, but all in
+    * the following pattern can be parsed as separators between a tag name
+    * and its attributes: [\d\s"\'`;,\/\=\(\x00\x0B\x09\x0C]
+    * ... however, remove_invisible_characters() above already strips the
+    * hex-encoded ones, so we'll skip them below.
+    */
+   do
+   {
+      $original = $str;
+
+      if (preg_match('/<a/i', $str))
+      {
+         $str = preg_replace_callback('#<a(?:rea)?[^a-z0-9>]+([^>]*?)(?:>|$)#si', array($this, '_js_link_removal'), $str);
+      }
+
+      if (preg_match('/<img/i', $str))
+      {
+         $str = preg_replace_callback('#<img[^a-z0-9]+([^>]*?)(?:\s?/?>|$)#si', array($this, '_js_img_removal'), $str);
+      }
+
+      if (preg_match('/script|xss/i', $str))
+      {
+         $str = preg_replace('#</*(?:script|xss).*?>#si', '[removed]', $str);
+      }
+   }
+   while ($original !== $str);
+   unset($original);
+
+   /*
+    * 净化HTML元素
+    * So this: <blink>
+    * Becomes: &lt;blink&gt;
+    */
+   $pattern = '#'
+      .'<((?<slash>/*\s*)((?<tagName>[a-z0-9]+)(?=[^a-z0-9]|$)|.+)' // tag start and name, followed by a non-tag character
+      .'[^\s\042\047a-z0-9>/=]*' // a valid attribute character immediately after the tag would count as a separator
+      // optional attributes
+      .'(?<attributes>(?:[\s\042\047/=]*' // non-attribute characters, excluding > (tag close) for obvious reasons
+      .'[^\s\042\047>/=]+' // attribute characters
+      // optional attribute-value
+         .'(?:\s*=' // attribute-value separator
+            .'(?:[^\s\042\047=><`]+|\s*\042[^\042]*\042|\s*\047[^\047]*\047|\s*(?U:[^\s\042\047=><`]*))' // single, double or non-quoted value
+         .')?' // end optional attribute-value group
+      .')*)' // end optional attributes group
+      .'[^>]*)(?<closeTag>\>)?#isS';
+
+   do
+   {
+      $old_str = $str;
+      $str = preg_replace_callback($pattern, array($this, '_sanitize_naughty_html'), $str);
+   }
+   while ($old_str !== $str);
+   unset($old_str);
+
+   /*
+    * Sanitize naughty scripting elements
+    *
+    * Similar to above, only instead of looking for
+    * tags it looks for PHP and JavaScript commands
+    * that are disallowed. Rather than removing the
+    * code, it simply converts the parenthesis to entities
+    * rendering the code un-executable.
+    *
+    * For example:    eval('some code')
+    * Becomes:    eval&#40;'some code'&#41;
+    */
+   $str = preg_replace(
+      '#(alert|prompt|confirm|cmd|passthru|eval|exec|expression|system|fopen|fsockopen|file|file_get_contents|readfile|unlink)(\s*)\((.*?)\)#si',
+      '\\1\\2&#40;\\3&#41;',
+      $str
+   );
+
+   // Same thing, but for "tag functions" (e.g. eval`some code`)
+   // See https://github.com/bcit-ci/CodeIgniter/issues/5420
+   $str = preg_replace(
+      '#(alert|prompt|confirm|cmd|passthru|eval|exec|expression|system|fopen|fsockopen|file|file_get_contents|readfile|unlink)(\s*)`(.*?)`#si',
+      '\\1\\2&#96;\\3&#96;',
+      $str
+   );
+
+    //最终清理，额外的防护措施，防止以上步骤中漏掉的元素
+   $str = $this->_do_never_allowed($str);
+
+   /*
+    * Images are Handled in a Special Way
+    * - Essentially, we want to know that after all of the character
+    * conversion is done whether any unwanted, likely XSS, code was found.
+    * If not, we return TRUE, as the image is clean.
+    * However, if the string post-conversion does not matched the
+    * string post-removal of XSS, then it fails, as there was unwanted XSS
+    * code found and removed/changed during processing.
+    */
+   if ($is_image === TRUE)
+   {
+      return ($str === $converted_string);
+   }
+
+   return $str;
+}
+```
+
+**CSRF验证csrf_verify()**
 ```php
 public function csrf_verify()
 {

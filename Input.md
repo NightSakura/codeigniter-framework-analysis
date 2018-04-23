@@ -5,13 +5,13 @@
 ## 用户配置
 和输入类相关的用户配置包括以下几项。
 
-$config['allow_get_array']表示是否允许用户使用`$_GET`全局变量，如果设置为不允许，会在输入类构造函数处理中将`$_GET`清空。
+`$config['allow_get_array']`表示是否允许用户使用`$_GET`全局变量，如果设置为不允许，会在输入类构造函数处理中将`$_GET`清空。
 
-$config['global_xss_filtering']表示是否开启XSS全局防御的标志位，如果设置为允许，则会对用户输入和Cookie的内容中进行XSS过滤。
+`$config['global_xss_filtering']`表示是否开启XSS全局防御的标志位，如果设置为允许，则会对用户输入和Cookie的内容中进行XSS过滤。
 
-$config['csrf_protection']表示是否开启CSRF防御，如果设置为允许，则会在对表单数据进行处理时进行CSRF方法的检查。
+`$config['csrf_protection']`表示是否开启CSRF防御，如果设置为允许，则会在对表单数据进行处理时进行CSRF方法的检查。
 
-$config['standardize_newlines']表示是否标准化换行符，如果设置为允许，则会在对表单数据进行处理时用PHP_EOL代替数据中的换行符。
+`$config['standardize_newlines']`表示是否标准化换行符，如果设置为允许，则会在对表单数据进行处理时用PHP_EOL代替数据中的换行符。
 
 ## 属性概览
 

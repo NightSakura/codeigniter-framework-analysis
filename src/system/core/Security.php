@@ -353,7 +353,7 @@ class CI_Security {
 	 */
 	public function xss_clean($str, $is_image = FALSE)
 	{
-		// Is the string an array?
+		//数组类型循环调用本方法
 		if (is_array($str))
 		{
 			foreach ($str as $key => &$value)
@@ -364,17 +364,12 @@ class CI_Security {
 			return $str;
 		}
 
-		// Remove Invisible Characters
+		//去除控制字符
 		$str = remove_invisible_characters($str);
 
-		/*
-		 * URL Decode
-		 *
-		 * Just in case stuff like this is submitted:
-		 *
-		 * <a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>
-		 *
-		 * Note: Use rawurldecode() so it does not remove plus signs
+		/* 匹配到%就进行URL Decode
+		 * 防止类似<a href="http://%77%77%77%2E%67%6F%6F%67%6C%65%2E%63%6F%6D">Google</a>的提交
+		 * Note:使用rawurldecode()函数，不会移除加号
 		 */
 		if (stripos($str, '%') !== false)
 		{
@@ -388,49 +383,30 @@ class CI_Security {
 			unset($oldstr);
 		}
 
-		/*
-		 * Convert character entities to ASCII
-		 *
-		 * This permits our tests below to work reliably.
-		 * We only convert entities that are within tags since
-		 * these are the ones that will pose security problems.
-		 */
+
+		//将character转换城ASCII
 		$str = preg_replace_callback("/[^a-z0-9>]+[a-z0-9]+=([\'\"]).*?\\1/si", array($this, '_convert_attribute'), $str);
 		$str = preg_replace_callback('/<\w+.*/si', array($this, '_decode_entity'), $str);
 
-		// Remove Invisible Characters Again!
+		//再次去除控制字符!
 		$str = remove_invisible_characters($str);
 
 		/*
-		 * Convert all tabs to spaces
-		 *
-		 * This prevents strings like this: ja	vascript
-		 * NOTE: we deal with spaces between characters later.
-		 * NOTE: preg_replace was found to be amazingly slow here on
-		 * large blocks of data, so we use str_replace.
+		 * 转换tabs为空字符' '
+		 * 应对ja vascript这种情况，之后处理空字符
 		 */
 		$str = str_replace("\t", ' ', $str);
 
-		// Capture converted string for later comparison
 		$converted_string = $str;
 
-		// Remove Strings that are never allowed
+		//删除不允许的字符
 		$str = $this->_do_never_allowed($str);
 
-		/*
-		 * Makes PHP tags safe
-		 *
-		 * Note: XML tags are inadvertently replaced too:
-		 *
-		 * <?xml
-		 *
-		 * But it doesn't seem to pose a problem.
-		 */
+
+        //Makes PHP tags safe
 		if ($is_image === TRUE)
 		{
-			// Images have a tendency to have the PHP short opening and
-			// closing tags every so often so we skip those and only
-			// do the long opening tags.
+			//替换图片中的PHP开始标签-只处理长标签
 			$str = preg_replace('/<\?(php)/i', '&lt;?\\1', $str);
 		}
 		else
@@ -438,11 +414,9 @@ class CI_Security {
 			$str = str_replace(array('<?', '?'.'>'), array('&lt;?', '?&gt;'), $str);
 		}
 
-		/*
-		 * Compact any exploded words
-		 *
+		/* 处理被拆分的关键词
 		 * This corrects words like:  j a v a s c r i p t
-		 * These words are compacted back to their correct state.
+		 * 处理之后让这些词返回正确的状态
 		 */
 		$words = array(
 			'javascript', 'expression', 'vbscript', 'jscript', 'wscript',
@@ -454,13 +428,13 @@ class CI_Security {
 		{
 			$word = implode('\s*', str_split($word)).'\s*';
 
-			// We only want to do this when it is followed by a non-word character
-			// That way valid stuff like "dealer to" does not become "dealerto"
+			// 只把空格后边不是完整单词的情况进行合并
+			// 这样避免了像"dealer to"被合并城"dealerto"的情况
 			$str = preg_replace_callback('#('.substr($word, 0, -3).')(\W)#is', array($this, '_compact_exploded_words'), $str);
 		}
 
 		/*
-		 * Remove disallowed Javascript in links or img tags
+		 * 删除在link或者img标签中不允许的Javascript
 		 * We used to do some version comparisons and use of stripos(),
 		 * but it is dog slow compared to these simplified non-capturing
 		 * preg_match(), especially if the pattern exists in the string
@@ -494,11 +468,7 @@ class CI_Security {
 		unset($original);
 
 		/*
-		 * Sanitize naughty HTML elements
-		 *
-		 * If a tag containing any of the words in the list
-		 * below is found, the tag gets converted to entities.
-		 *
+		 * 净化HTML元素
 		 * So this: <blink>
 		 * Becomes: &lt;blink&gt;
 		 */
@@ -515,9 +485,6 @@ class CI_Security {
 			.')*)' // end optional attributes group
 			.'[^>]*)(?<closeTag>\>)?#isS';
 
-		// Note: It would be nice to optimize this for speed, BUT
-		//       only matching the naughty elements here results in
-		//       false positives and in turn - vulnerabilities!
 		do
 		{
 			$old_str = $str;
@@ -552,9 +519,7 @@ class CI_Security {
 			$str
 		);
 
-		// Final clean up
-		// This adds a bit of extra precaution in case
-		// something got through the above filters
+	    //最终清理，额外的防护措施，防止以上步骤中漏掉的元素
 		$str = $this->_do_never_allowed($str);
 
 		/*

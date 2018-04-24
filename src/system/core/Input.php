@@ -151,7 +151,7 @@ class CI_Input {
 			$this->uni =& load_class('Utf8', 'core');
 		}
 
-		//检查预定义变量,$_GET,$_POST,$_COOKIE去掉不合要求的字符
+		//处理表单数据,$_GET,$_POST,$_COOKIE去掉不合要求的字符
 		$this->_sanitize_globals();
 
 		//如果开启了csrf检查且不是cli模式就进行csrf安全检查
@@ -610,7 +610,7 @@ class CI_Input {
 			$_GET = array();
 		}
 		elseif (is_array($_GET))
-		{
+		{   //过滤$_GET的字符
 			foreach ($_GET as $key => $val)
 			{
 				$_GET[$this->_clean_input_keys($key)] = $this->_clean_input_data($val);
@@ -689,7 +689,7 @@ class CI_Input {
 			$str = stripslashes($str);
 		}
 
-		// Clean UTF-8 if supported
+		//开启了配置支持就过滤UTF-8
 		if (UTF8_ENABLED === TRUE)
 		{
 			$str = $this->uni->clean_string($str);
@@ -698,7 +698,7 @@ class CI_Input {
 		//去除控制字符
 		$str = remove_invisible_characters($str, FALSE);
 
-		//如果需要的话标准化新的行
+		//如果需要的话标准化换行符
 		if ($this->_standardize_newlines === TRUE)
 		{
 			return preg_replace('/(?:\r\n|[\r\n])/', PHP_EOL, $str);
@@ -744,7 +744,7 @@ class CI_Input {
 		{
 			return $this->uni->clean_string($str);
 		}
-
+		
 		return $str;
 	}
 

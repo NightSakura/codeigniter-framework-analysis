@@ -745,12 +745,11 @@ class CI_Loader {
 
 		if ( ! class_exists('CI_Driver_Library', FALSE))
 		{
-			// We aren't instantiating an object here, just making the base class available
+			//基础类尚未实力话，保证CI_Driver_Library类可用
 			require BASEPATH.'libraries/Driver.php';
 		}
 
-		// We can save the loader some time since Drivers will *always* be in a subfolder,
-		// and typically identically named to the library
+		//由于Drivers归属于libraries的次级目录，目录和文件名相同以此区分其他libraries
 		if ( ! strpos($library, '/'))
 		{
 			$library = ucfirst($library).'/'.$library;
@@ -1297,6 +1296,7 @@ class CI_Loader {
 	 */
 	protected function _ci_autoloader()
 	{
+	    //获取autoload.php文件，若为找到文件直接返回
 		if (file_exists(APPPATH.'config/autoload.php'))
 		{
 			include(APPPATH.'config/autoload.php');
@@ -1311,8 +1311,7 @@ class CI_Loader {
 		{
 			return;
 		}
-
-		// Autoload packages
+		//添加packages所在的目录
 		if (isset($autoload['packages']))
 		{
 			foreach ($autoload['packages'] as $package_path)
@@ -1321,7 +1320,7 @@ class CI_Loader {
 			}
 		}
 
-		// Load any custom config file
+		//加载custom config文件-如果用户定义了
 		if (count($autoload['config']) > 0)
 		{
 			foreach ($autoload['config'] as $val)
@@ -1330,7 +1329,7 @@ class CI_Loader {
 			}
 		}
 
-		// Autoload helpers and languages
+		//自动加载helpers和languages
 		foreach (array('helper', 'language') as $type)
 		{
 			if (isset($autoload[$type]) && count($autoload[$type]) > 0)
@@ -1339,27 +1338,25 @@ class CI_Loader {
 			}
 		}
 
-		// Autoload drivers
+		//自动加载drivers
 		if (isset($autoload['drivers']))
 		{
 			$this->driver($autoload['drivers']);
 		}
 
-		// Load libraries
+		//加载libraries
 		if (isset($autoload['libraries']) && count($autoload['libraries']) > 0)
 		{
-			// Load the database driver.
+			//先加载数据库类，在加载其他libraries
 			if (in_array('database', $autoload['libraries']))
 			{
 				$this->database();
 				$autoload['libraries'] = array_diff($autoload['libraries'], array('database'));
 			}
-
-			// Load all other libraries
 			$this->library($autoload['libraries']);
 		}
 
-		// Autoload models
+		//自动加载models
 		if (isset($autoload['model']))
 		{
 			$this->model($autoload['model']);

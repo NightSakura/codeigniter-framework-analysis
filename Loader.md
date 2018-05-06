@@ -22,11 +22,13 @@
 |__construct()|构造函数|
 |initialize()|初始化函数|
 |_ci_autoloader()|自动加载函数|
-|||
-|||
-|||
+|driver()|加载driver文件|
+|library()|加载library文件|
+|_ci_autoloader_library()||
 
 **构造函数__construct()**
+
+构造函数主要完成的是属性的值的初始化，具体为初始化加载器类的_ci_ob_level和_ci_classes变量。
 ```php
 public function __construct()
 {
@@ -38,6 +40,8 @@ public function __construct()
 ```
 
 **初始化函数initialize()**
+
+这个函数在控制器Controller的构造函数中被调用，因此可知控制器实例化完成之后就可以访问加载器加载的任何类了，所以是一个超级对象。
 ```php
 public function initialize()
 {
@@ -46,6 +50,8 @@ public function initialize()
 ```
 
 **自动加载函数_ci_autoloader()**
+
+加载器类内部的自动加载函数，分别按顺序完成各类文件的加载。
 ```php
 protected function _ci_autoloader()
 {
@@ -73,8 +79,8 @@ protected function _ci_autoloader()
       }
    }
 
-   //加载custom config文件-如果用户定义了
-   if (count($autoload['config']) > 0)
+   //加载custom config文件-写入到$config变量中
+   if (count($autoload['config']) > 0)
    {
       foreach ($autoload['config'] as $val)
       {
@@ -91,8 +97,8 @@ protected function _ci_autoloader()
       }
    }
 
-   //自动加载drivers
-   if (isset($autoload['drivers']))
+   //自动加载drivers
+   if (isset($autoload['drivers']))
    {
       $this->driver($autoload['drivers']);
    }
@@ -117,7 +123,7 @@ protected function _ci_autoloader()
 }
 ```
 
-**加载driver文件driver()**
+**加载driver文件 driver()**
 ```php
 public function driver($library, $params = NULL, $object_name = NULL)
 {
@@ -158,7 +164,7 @@ public function driver($library, $params = NULL, $object_name = NULL)
 }
 ```
 
-**加载library文件library()**
+**加载library文件 library()**
 ```php
 public function library($library, $params = NULL, $object_name = NULL)
 {
@@ -187,7 +193,6 @@ public function library($library, $params = NULL, $object_name = NULL)
    {
       $params = NULL;
    }
-
    $this->_ci_load_library($library, $params, $object_name);
    return $this;
 }
